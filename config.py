@@ -1,14 +1,14 @@
-TOKEN = '1665910582:AAE45fSzMxb6AN8fy9hdH9-efsaOm9E8B90'
+TOKEN = ''
 
 APP_NAME = "@DallolBot"
 
 # ROOT_USER = 'root'
 
 # database
-DB_HOSTNAME = 'localhost'
-DB_USERNAME = 'sarvar'
-DB_PASSWORD = 'Sarvar@akbarov05'
-DB_NAME = 'dallolbot'
+DB_HOSTNAME = ''
+DB_USERNAME = ''
+DB_PASSWORD = ''
+DB_NAME = ''
 
 config_db = {
     'host': DB_HOSTNAME,
