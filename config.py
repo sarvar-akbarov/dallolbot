@@ -1,4 +1,4 @@
-TOKEN = ''
+TOKEN = '1665910582:AAE45fSzMxb6AN8fy9hdH9-efsaOm9E8B90'
 
 APP_NAME = "@DallolBot"
 

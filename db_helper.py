@@ -70,13 +70,13 @@ class DBHelper:
         sql = "SELECT * FROM chats WHERE freelancer_id = ? AND status=1 LIMIT 1;"
         self.cursor.execute(sql, (telegramid,))
         chat = self.cursor.fetchone()
-        print('chat', chat)
+        # print('chat', chat)
 
         if not chat:
             sql = "SELECT * FROM chats WHERE client_id = ? AND status=1 LIMIT 1;"
             self.cursor.execute(sql, (telegramid,))
             chat = self.cursor.fetchone()
-            print('chat', chat)
+            # print('chat', chat)
             if not chat:
                 return False
             return {'id': chat['freelancer_id'], 'link': chat['channel_link']}

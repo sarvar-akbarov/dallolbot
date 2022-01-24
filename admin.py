@@ -142,9 +142,19 @@ def admin_menu(update, context):
                                               reply_markup=InlineKeyboardMarkup(create_btns(attributes, {})))
                     return STATE_ADD
                 if update.message.text == BTN_CHANGE:
-                    update.message.reply_html('Mavjud chatlar',
-                                              reply_markup=InlineKeyboardMarkup(chat_btns(db.get_chats())))
-                    return STATE_CHOOSE
+                    chats = db.get_chats()
+
+                    if len(chats) > 0:
+                        update.message.reply_html('Mavjud chatlar',
+                                                  reply_markup=InlineKeyboardMarkup(chat_btns(chats)))
+                        return STATE_CHOOSE
+                    else:
+                        update.message.reply_html('Chatlar topilmadi!')
+                        update.message.reply_html(text='🏠 Menu',
+                                                  reply_markup=ReplyKeyboardMarkup(admin_buttons(),
+                                                                                   resize_keyboard=True,
+                                                                                   one_time_keyboard=True))
+                        return STATE_ADMIN
 
             update.message.reply_html(text='🏠 Menu',
                                       reply_markup=ReplyKeyboardMarkup(admin_buttons(), resize_keyboard=True,
@@ -205,9 +215,11 @@ def add_chat(update, context):
         elif update.message is not None:
             if context.user_data.get('attribute') is not None:
                 context.user_data[context.user_data['attribute']] = update.message.text
+                del context.user_data['attribute']
                 update.message.reply_html('Chat Yaratish',
                                           reply_markup=InlineKeyboardMarkup(create_btns(attributes, context.user_data)))
-
+            else:
+                update.message.delete()
     except Exception as e:
         print(traceback.format_exc())
 
@@ -224,8 +236,7 @@ def change_chat(update, context):
 
             if data == 'back':
                 query.answer()
-                query.message.edit_text('Mavjud chatlar',
-                                        reply_markup=InlineKeyboardMarkup(chat_btns(db.get_chats())))
+                query.message.edit_text('Mavjud chatlar', reply_markup=InlineKeyboardMarkup(chat_btns(db.get_chats())))
                 return STATE_CHOOSE
             else:
                 split = data.split('-')
@@ -235,11 +246,23 @@ def change_chat(update, context):
                     context.user_data['attribute'] = 'freelancer_id'
                     context.user_data['id'] = split[1]
                 elif split[0] == 'delete':
-                    query.message.delete()
                     query.answer('Bajarildi!', show_alert=True)
                     db.update('chats', split[1], {'status': 2})
-                    query.message.edit_text('Mavjud chatlar',
-                                            reply_markup=InlineKeyboardMarkup(chat_btns(db.get_chats())))
+
+                    chats = db.get_chats()
+
+                    if len(chats) > 0:
+                        query.message.edit_text('Mavjud chatlar',
+                                                reply_markup=InlineKeyboardMarkup(chat_btns(chats)))
+
+                        return STATE_CHOOSE
+                    else:
+                        query.message.delete()
+                        query.message.reply_html(text='🏠 Menu',
+                                                  reply_markup=ReplyKeyboardMarkup(admin_buttons(),
+                                                                                   resize_keyboard=True,
+                                                                                   one_time_keyboard=True))
+                        return STATE_ADMIN
                     return STATE_CHOOSE
         elif update.message is not None:
             update.message.delete()
@@ -247,12 +270,8 @@ def change_chat(update, context):
                 db.update('chats', context.user_data['id'], {'freelancer_id': update.message.text})
                 update.message.reply_html('Bajarildi!')
                 chat = db.get_chat(context.user_data['id'])
-                context.bot.sendMessage(update.message.text, text="Sizni chatga taklif qilishdi!",
-                                        reply_markup=InlineKeyboardMarkup(begin_conservation_btn()))
-                context.bot.sendMessage(chat['client_id'], text="Sizni chatga taklif qilishdi!",
-                                        reply_markup=InlineKeyboardMarkup(begin_conservation_btn()))
-                # print(chat)
-
+                context.bot.sendMessage(update.message.text, text="Sizni chatga taklif qilishdi!", reply_markup=InlineKeyboardMarkup(begin_conservation_btn()))
+                context.bot.sendMessage(chat['client_id'], text="Sizni chatga taklif qilishdi!", reply_markup=InlineKeyboardMarkup(begin_conservation_btn()))
                 message = "Nomi: {}\nFrilanser ID: {}\nZakazchik ID: {}\nKanal Linki: {}".format(chat['name'],
                                                                                                  chat['freelancer_id'],
                                                                                                  chat['client_id'],
@@ -271,19 +290,14 @@ def choose_chat(update, context):
         if update.callback_query is not None:
             query = update.callback_query
             data = query.data
-            # print(data)
-            # print('context', context.user_data)
 
             if data == 'cancel':
                 query.answer()
-                query.message.reply_html(text='🏠 Menu',
-                                         reply_markup=ReplyKeyboardMarkup(admin_buttons(), resize_keyboard=True,
+                query.message.reply_html(text='🏠 Menu',  reply_markup=ReplyKeyboardMarkup(admin_buttons(), resize_keyboard=True,
                                                                           one_time_keyboard=True))
                 return STATE_ADMIN
             db = DBHelper()
             chat = db.get_chat(data)
-
-            # print(chat)
 
             message = "Nomi: {}\nFrilanser ID: {}\nZakazchik ID: {}\nKanal Linki: {}".format(chat['name'],
                                                                                              chat['freelancer_id'],
